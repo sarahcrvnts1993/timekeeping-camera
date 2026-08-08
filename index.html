@@ -271,85 +271,39 @@ function takePhoto() {
 function savePhoto() {
 
   if (!currentPhoto) {
-
-    alert(
-      'Please take a selfie first.'
-    );
-
+    alert('Please take a selfie first.');
     return;
   }
 
+  document.getElementById('status').innerText =
+    'Uploading selfie...';
 
-  document
-    .getElementById('status')
-    .innerText =
-      'Uploading selfie...';
+  const form = document.createElement('form');
 
+  form.method = 'POST';
+  form.action = APPS_SCRIPT_URL;
+  form.target = 'uploadFrame';
 
-  // Create form
-  const form =
-    document.createElement('form');
+  const photoInput = document.createElement('input');
 
+  photoInput.type = 'hidden';
+  photoInput.name = 'photo';
+  photoInput.value = currentPhoto;
 
-  form.method =
-    'POST';
+  form.appendChild(photoInput);
 
-
-  form.action =
-    APPS_SCRIPT_URL;
-
-
-  form.target =
-    'uploadFrame';
-
-
-  // Photo
-  const photoInput =
-    document.createElement('input');
-
-  photoInput.type =
-    'hidden';
-
-  photoInput.name =
-    'photo';
-
-  photoInput.value =
-    currentPhoto;
-
-
-  form.appendChild(
-    photoInput
-  );
-
-
-  document.body.appendChild(
-    form
-  );
-
+  document.body.appendChild(form);
 
   form.submit();
 
-
   form.remove();
 
+  setTimeout(function () {
 
-  // We don't read the response
-  // because the request is cross-origin.
-  // The Apps Script will save the file.
+    document.getElementById('status').innerText =
+      'Selfie submitted. Check Google Drive.';
 
-
-  setTimeout(
-    function() {
-
-      document
-        .getElementById('status')
-        .innerText =
-          'Selfie sent to Google Drive.';
-
-    },
-    2500
-  );
-
+  }, 3000);
 }
 
 </script>
