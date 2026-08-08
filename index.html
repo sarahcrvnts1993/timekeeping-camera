@@ -1,15 +1,20 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
   <title>TIME KEEPING CAMERA</title>
 
   <style>
+
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
       background: #f3f4f6;
       padding: 20px;
+      text-align: center;
     }
 
     .box {
@@ -20,99 +25,200 @@
       border-radius: 15px;
     }
 
-    video {
+    video,
+    img {
       width: 100%;
       border-radius: 12px;
       background: black;
     }
 
+    img {
+      display: none;
+    }
+
     button {
       width: 100%;
       padding: 15px;
-      margin-top: 15px;
+      margin-top: 12px;
       border: 0;
       border-radius: 10px;
-      font-size: 18px;
+      font-size: 17px;
       font-weight: bold;
       color: white;
+    }
+
+    .open {
       background: #198754;
+    }
+
+    .capture {
+      background: #ff9800;
+    }
+
+    .save {
+      background: #0d6efd;
     }
 
     #status {
       margin-top: 15px;
       font-weight: bold;
     }
+
   </style>
+
 </head>
 
+
 <body>
+
 
 <div class="box">
 
   <h2>📸 TIME KEEPING CAMERA</h2>
 
-  <video id="video" autoplay playsinline></video>
 
-  <button onclick="openCamera()">
+  <video
+    id="video"
+    autoplay
+    playsinline>
+  </video>
+
+
+  <img
+    id="preview">
+
+
+  <canvas
+    id="canvas"
+    style="display:none;">
+  </canvas>
+
+
+  <button
+    class="open"
+    onclick="openCamera()">
+
     OPEN CAMERA
+
   </button>
 
-  <button onclick="takePhoto()">
-    TAKE SELFIE
+
+  <button
+    class="capture"
+    onclick="takePhoto()">
+
+    📸 TAKE SELFIE
+
   </button>
 
-  <canvas id="canvas" style="display:none;"></canvas>
+
+  <button
+    class="save"
+    onclick="savePhoto()">
+
+    ✓ SAVE SELFIE
+
+  </button>
+
 
   <div id="status"></div>
 
+
+  <!-- Hidden iframe -->
+  <iframe
+    name="uploadFrame"
+    id="uploadFrame"
+    style="display:none;">
+  </iframe>
+
+
 </div>
+
 
 <script>
 
+
+const APPS_SCRIPT_URL =
+  'https://script.google.com/macros/s/AKfycbzcjcYusqYXglNXorfeEhIjmwxZaZa2WicKyY5-Ds2bG6hAKJM4rXkaHYfNI0Ta3dFY/exec';
+
+
 let stream = null;
+
+let currentPhoto = '';
+
+
+// ==========================================
+// OPEN CAMERA
+// ==========================================
 
 async function openCamera() {
 
   try {
 
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: "user"
-      },
-      audio: false
-    });
+    stream =
+      await navigator
+        .mediaDevices
+        .getUserMedia({
 
-    document.getElementById("video").srcObject = stream;
+          video: {
+            facingMode: 'user'
+          },
 
-    document.getElementById("status").innerText =
-      "Camera is ready.";
+          audio: false
+
+        });
+
+
+    document
+      .getElementById('video')
+      .srcObject = stream;
+
+
+    document
+      .getElementById('status')
+      .innerText =
+        'Camera ready.';
+
 
   } catch (error) {
 
-    document.getElementById("status").innerText =
-      "Camera permission denied or unavailable.";
-
     console.error(error);
+
+    document
+      .getElementById('status')
+      .innerText =
+        'Camera permission denied.';
 
   }
 
 }
 
 
+// ==========================================
+// TAKE PHOTO
+// ==========================================
+
 function takePhoto() {
 
   const video =
-    document.getElementById("video");
+    document.getElementById('video');
 
   const canvas =
-    document.getElementById("canvas");
+    document.getElementById('canvas');
+
+  const preview =
+    document.getElementById('preview');
+
 
   if (!video.videoWidth) {
 
-    alert("Open the camera first.");
+    alert(
+      'Please open the camera first.'
+    );
 
     return;
   }
+
 
   canvas.width =
     video.videoWidth;
@@ -120,8 +226,10 @@ function takePhoto() {
   canvas.height =
     video.videoHeight;
 
+
   const ctx =
-    canvas.getContext("2d");
+    canvas.getContext('2d');
+
 
   ctx.drawImage(
     video,
@@ -131,14 +239,122 @@ function takePhoto() {
     canvas.height
   );
 
-  canvas.style.display = "block";
 
-  document.getElementById("status").innerText =
-    "Selfie captured successfully!";
+  currentPhoto =
+    canvas.toDataURL(
+      'image/jpeg',
+      0.75
+    );
+
+
+  preview.src =
+    currentPhoto;
+
+
+  preview.style.display =
+    'block';
+
+
+  document
+    .getElementById('status')
+    .innerText =
+      'Selfie captured.';
+
+
+}
+
+
+// ==========================================
+// SAVE TO GOOGLE DRIVE
+// ==========================================
+
+function savePhoto() {
+
+  if (!currentPhoto) {
+
+    alert(
+      'Please take a selfie first.'
+    );
+
+    return;
+  }
+
+
+  document
+    .getElementById('status')
+    .innerText =
+      'Uploading selfie...';
+
+
+  // Create form
+  const form =
+    document.createElement('form');
+
+
+  form.method =
+    'POST';
+
+
+  form.action =
+    APPS_SCRIPT_URL;
+
+
+  form.target =
+    'uploadFrame';
+
+
+  // Photo
+  const photoInput =
+    document.createElement('input');
+
+  photoInput.type =
+    'hidden';
+
+  photoInput.name =
+    'photo';
+
+  photoInput.value =
+    currentPhoto;
+
+
+  form.appendChild(
+    photoInput
+  );
+
+
+  document.body.appendChild(
+    form
+  );
+
+
+  form.submit();
+
+
+  form.remove();
+
+
+  // We don't read the response
+  // because the request is cross-origin.
+  // The Apps Script will save the file.
+
+
+  setTimeout(
+    function() {
+
+      document
+        .getElementById('status')
+        .innerText =
+          'Selfie sent to Google Drive.';
+
+    },
+    2500
+  );
 
 }
 
 </script>
 
+
 </body>
+
 </html>
